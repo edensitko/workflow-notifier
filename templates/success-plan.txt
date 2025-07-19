@@ -1,8 +1,8 @@
 ✅ Terraform plan succeeded !
 
-📦 Repo: {$REPO}
-🌍 Environment: {$ENV_NAME}
-👤 By: {$ACTOR}
-🔧 Status: {$STATUS}
-⏰ {$TIME}
-🖥️ Server DNS: {$SERVER_DNS}
+📦 Repo: ${REPO}
+🌍 Environment: ${ENV_NAME}
+👤 By: ${ACTOR}
+🔧 Status: ${STATUS}
+⏰ ${TIME}
+🖥️ Server DNS: ${SERVER_DNS}
