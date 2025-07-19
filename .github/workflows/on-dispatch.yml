@@ -24,7 +24,5 @@ jobs:
             "${{ github.event.client_payload.discord_webhook_url }}" \
             "${{ github.event.client_payload.slack_webhook_url }}" \
             "${{ github.event.client_payload.telegram_api_url }}" \
-            "${{ github.event.client_payload.time }}"
+            "${{ github.event.client_payload.time }}" \
             "${{ github.event.client_payload.server_dns }}"
-
-
