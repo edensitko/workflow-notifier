@@ -1,7 +1,7 @@
-✅ Terraform destroy completed successfully!!!!!
+✅ Terraform destroy completed successfully !
     
-📦 Repo: ${REPO}
-🌍 Environment: ${ENV_NAME}
-👤 By: ${ACTOR}
-🔧 Status: ${STATUS}
+📦 Repo: $REPO
+🌍 Environment: $ENV_NAME
+👤 By: $ACTOR
+🔧 Status: $STATUS
 ⏰ $TIME

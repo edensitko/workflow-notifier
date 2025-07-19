@@ -1,7 +1,7 @@
-✅ Terraform plan succeeded!!!!
+✅ Terraform plan succeeded !
 
-📦 Repo: ${REPO}
-🌍 Environment: ${ENV_NAME}
-👤 By: ${ACTOR}
-🔧 Status: ${STATUS}
+📦 Repo: $REPO
+🌍 Environment: $ENV_NAME
+👤 By: $ACTOR
+🔧 Status: $STATUS
 ⏰ $TIME

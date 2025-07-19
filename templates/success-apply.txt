@@ -1,4 +1,4 @@
-✅ Terraform apply completed successfully!!!!!
+✅ Terraform apply completed successfully !
 
 📦 Repo: $REPO
 🌍 Environment: $ENV_NAME

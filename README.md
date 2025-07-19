@@ -1,6 +1,7 @@
-# 🌐 Terraform Apply Notifier
+# 🌐 workflow notifier 
+ Notification system that sends **multi-channel alerts** to Discord, Slack, and Telegram after Terraform operations or any CI/CD event. Perfect for keeping your team informed about infrastructure changes in real-time.
 
-A powerful notification system that sends **multi-channel alerts** to Discord, Slack, and Telegram after Terraform operations or any CI/CD event. Perfect for keeping your team informed about infrastructure changes in real-time.
+*the repo is ready for terraform workflow usage*
 
 ---
 
@@ -11,7 +12,7 @@ A powerful notification system that sends **multi-channel alerts** to Discord, S
   - Discord
   - Slack
   - Telegram
-- ⏱️ **Timestamp support** - include execution time in notifications
+  - you can add more channels by adding more arguments to the script
 - 🔄 **GitHub Actions integration** via repository_dispatch events
 - 🛡️ **Robust error handling** with fallback messages if templates fail
 - 🧩 **Variable substitution** in templates (repo, environment, actor, status, time)
@@ -22,18 +23,16 @@ A powerful notification system that sends **multi-channel alerts** to Discord, S
 
 ```
 terraform-apply-notifier/
-├── notifier.sh                    # Main notification script
+├── notifier.sh                   
 ├── .github/
 │   └── workflows/
-│       └── on-dispatch.yml        # GitHub Action to handle notification events
+│       └── on-dispatch.yml       
 └── templates/
-    ├── success-plan.txt           # Template for successful Terraform plan
-    ├── success-apply.txt          # Template for successful Terraform apply
-    ├── success-destroy.txt        # Template for successful Terraform destroy
-    └── custom.txt                 # Custom template for other notifications
+    ├── success-plan.txt           
+    ├── success-apply.txt          
+    ├── success-destroy.txt        
+    └── custom.txt                 
 ```
-
----
 
 ---
 
@@ -68,21 +67,6 @@ terraform-apply-notifier/
 | `telegram_api_url` | Telegram API URL | `"https://api.telegram.org/bot..."` |
 | `time` | Timestamp (optional) | `"2025-07-19 12:00:00"` |
 
-#### Example:
-
-```bash
-./notifier.sh \
-  "Success" \
-  "success-apply" \
-  "terraform-aws-vpc" \
-  "production" \
-  "devops-team" \
-  "https://discord.com/api/webhooks/..." \
-  "https://hooks.slack.com/services/..." \
-  "https://api.telegram.org/bot..." \
-  "2025-07-19 12:00:00"
-```
-
 ### 🧩 Template System
 
 The repository includes several template files in the `templates/` directory. Here's an example of what a template looks like:
@@ -116,8 +100,25 @@ When using this with GitHub Actions, you'll need to set up the following secrets
 
 ---
 
+## 🛡️ Setting Up GitHub Personal Access Token (GH_PAT)
 
-## 🔄 GitHub Actions Integration
+1. Go to: GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (Classic)
+2. Click: Generate new token
+3. Name it something descriptive like "Terraform Notification Token"
+4. Select these scopes:
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+5. Click "Generate token" and copy it immediately
+6. In the repository that will trigger notifications:
+   - Go to Settings > Secrets and variables > Actions
+   - Click "New repository secret"
+   - Name: `GH_PAT`
+   - Value: Paste your token
+   - Click "Add secret"
+
+---
+
+## 🔄 GitHub Actions workflow Integration
 
 This repository includes a GitHub Actions workflow file at `.github/workflows/on-dispatch.yml` that handles incoming notification requests. The workflow:
 
@@ -137,25 +138,10 @@ Key parameters passed from the event payload include:
 
 ---
 
-## 📤 Triggering Notifications
+### how to use the repo in your terraform workflow
 
-### Using GitHub CLI
-
-```bash
-gh repo dispatch edensitko/terraform-apply-notifier \
-  --event-type send-notification \
-  --field status="Success" \
-  --field message="success-apply" \
-  --field repo="your-repo" \
-  --field env_name="production" \
-  --field actor="your-username" \
-  --field discord_webhook_url="https://discord.com/api/webhooks/..." \
-  --field slack_webhook_url="https://hooks.slack.com/services/..." \
-  --field telegram_api_url="https://api.telegram.org/bot..." \
-  --field time="$(date '+%Y-%m-%d %H:%M:%S')"
-```
-
-### From Another GitHub Actions Workflow
+fork the repo and use it in your terraform workflow
+add the following code to your terraform workflow
 
 ```yaml
 - name: Get current time
@@ -166,7 +152,7 @@ gh repo dispatch edensitko/terraform-apply-notifier \
   uses: peter-evans/repository-dispatch@v3
   with:
     token: ${{ secrets.GH_PAT }}
-    repository: edensitko/terraform-apply-notifier
+    repository: ${{ github.repository }}
     event-type: send-notification
     client-payload: |
       {
@@ -181,46 +167,10 @@ gh repo dispatch edensitko/terraform-apply-notifier \
         "time": "${{ steps.current-time.outputs.time }}"
       }
 ```
-```
 
 ---
 
-## 📋 Message Types
-
-The `message_type` parameter determines which template file to use:
-
-- `success-plan` → uses `templates/success-plan.txt`
-- `success-apply` → uses `templates/success-apply.txt`
-- `success-destroy` → uses `templates/success-destroy.txt`
-- `custom` → uses `templates/custom.txt`
-
-## 🛡️ Setting Up GitHub Personal Access Token (GH_PAT)
-
-1. Go to: GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (Classic)
-2. Click: Generate new token
-3. Name it something descriptive like "Terraform Notification Token"
-4. Select these scopes:
-   - `repo` (Full control of private repositories)
-   - `workflow` (Update GitHub Action workflows)
-5. Click "Generate token" and copy it immediately
-6. In the repository that will trigger notifications:
-   - Go to Settings > Secrets and variables > Actions
-   - Click "New repository secret"
-   - Name: `GH_PAT`
-   - Value: Paste your token
-   - Click "Add secret"
-
 ## 🧪 Customizing Templates
-
-### Modifying Existing Templates
-
-You can customize any of the template files in the `templates/` directory to match your team's notification preferences. The following variables are available for substitution:
-
-- `$STATUS` or `${STATUS}` - Status of the operation
-- `$REPO` or `${REPO}` - Repository name
-- `$ENV_NAME` or `${ENV_NAME}` - Environment name
-- `$ACTOR` or `${ACTOR}` - User who triggered the action
-- `$TIME` - Timestamp of the operation
 
 ### Creating Custom Template Files
 
@@ -280,3 +230,4 @@ Created by Eden Sitkovetsky
 Feel free to contribute or open issues 🙌
 
 
+# workflow-notifier
