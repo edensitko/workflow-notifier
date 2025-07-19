@@ -138,10 +138,11 @@ Key parameters passed from the event payload include:
 
 ---
 
-### how to use the repo in your terraform workflow
+### how to use the repo in your workflow
 
-fork the repo and use it in your terraform workflow
-add the following code to your terraform workflow
+fork the repo and use it in your workflow
+add the following code to your workflow
+
 
 ```yaml
 - name: Get current time
@@ -230,5 +231,6 @@ Created by Eden Sitkovetsky
 Feel free to contribute or open issues 🙌
 
 
+# workflow-notifier
 # workflow-notifier
 # workflow-notifier

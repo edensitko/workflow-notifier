@@ -5,3 +5,4 @@
 👤 By: $ACTOR
 🔧 Status: $STATUS
 ⏰ $TIME
+🖥️ Server DNS: $SERVER_DNS
