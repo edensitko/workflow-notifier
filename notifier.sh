@@ -18,6 +18,7 @@ ACTOR="${5:-System}"
 DISCORD_WEBHOOK_URL="$6"
 SLACK_WEBHOOK_URL="$7"
 TELEGRAM_API_URL="$8"
+TIME="${9:-$(date '+%Y-%m-%d %H:%M:%S')}"
 
 # Define fallback messages for each type
 FALLBACK_SUCCESS_PLAN="✅ Terraform Plan Success "
@@ -81,6 +82,7 @@ if [ -f "$TEMPLATE_PATH" ]; then
     MESSAGE="${MESSAGE//\$REPO/$REPO}"
     MESSAGE="${MESSAGE//\$ENV_NAME/$ENV_NAME}"
     MESSAGE="${MESSAGE//\$ACTOR/$ACTOR}"
+    MESSAGE="${MESSAGE//\$TIME/$TIME}"
   else
     echo "Template file exists but is empty, using fallback message"
     MESSAGE="$FALLBACK_MESSAGE"

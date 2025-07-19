@@ -1,175 +1,282 @@
 # 🌐 Terraform Apply Notifier
 
-Send **multi-channel notifications** (Discord, Slack, Telegram, Email) after a `terraform apply` or any other CI/CD event.
+A powerful notification system that sends **multi-channel alerts** to Discord, Slack, and Telegram after Terraform operations or any CI/CD event. Perfect for keeping your team informed about infrastructure changes in real-time.
 
 ---
 
 ## 🚀 Features
 
-- ✅ Built-in **template system** (`success`, `custom`) with variable placeholders.
-- 📤 Sends messages to:
+- ✅ **Template-based notifications** with multiple pre-defined templates for different scenarios
+- 📤 **Multi-channel support** - send notifications to:
   - Discord
   - Slack
   - Telegram
-  - Email (if `mail` command is available)
-- 🔧 Easily trigger via GitHub Actions using [`repository_dispatch`](https://github.com/peter-evans/repository-dispatch).
+- ⏱️ **Timestamp support** - include execution time in notifications
+- 🔄 **GitHub Actions integration** via repository_dispatch events
+- 🛡️ **Robust error handling** with fallback messages if templates fail
+- 🧩 **Variable substitution** in templates (repo, environment, actor, status, time)
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
+
+```
 terraform-apply-notifier/
-├── notifier.sh              # Main script
-├── templates/
-│   ├── success.txt          # Default template
-│   └── custom.txt           # Custom template (optional)
+├── notifier.sh                    # Main notification script
+├── .github/
+│   └── workflows/
+│       └── on-dispatch.yml        # GitHub Action to handle notification events
+└── templates/
+    ├── success-plan.txt           # Template for successful Terraform plan
+    ├── success-apply.txt          # Template for successful Terraform apply
+    ├── success-destroy.txt        # Template for successful Terraform destroy
+    └── custom.txt                 # Custom template for other notifications
+```
 
 ---
 
 ---
 
-## 🛠️ Script Usage (Manual)
+## 🛠️ How to Use
+
+### Manual Script Usage
 
 ```bash
 ./notifier.sh \
   <status> \
-  <message | "success" | "custom"> \
+  <message_type> \
   <repo> \
   <env_name> \
   <actor> \
   <discord_webhook_url> \
   <slack_webhook_url> \
   <telegram_api_url> \
-  <email_to>
+  <time>
+```
 
-  Example:
-  ./notifier.sh \
-    "success" \
-    "success" \
-    "your-repo" \
-    "dev" \
-    "your-actor" \
-    "your-discord-webhook-url" \
-    "your-slack-webhook-url" \
-    "your-telegram-api-url" \
-    "your-email-to"
+#### Parameters:
 
-  🧩 Templates (Optional)
+| Parameter | Description | Example |
+|-----------|-------------|--------|
+| `status` | Status of the operation | `"Success"`, `"Failed"` |
+| `message_type` | Template to use | `"success-plan"`, `"success-apply"`, `"success-destroy"`, `"custom"` |
+| `repo` | Repository name | `"terraform-aws-modules"` |
+| `env_name` | Environment name | `"production"`, `"staging"` |
+| `actor` | User who triggered the action | `"username"` |
+| `discord_webhook_url` | Discord webhook URL | `"https://discord.com/api/webhooks/..."` |
+| `slack_webhook_url` | Slack webhook URL | `"https://hooks.slack.com/services/..."` |
+| `telegram_api_url` | Telegram API URL | `"https://api.telegram.org/bot..."` |
+| `time` | Timestamp (optional) | `"2025-07-19 12:00:00"` |
 
-Inside templates/ folder:
+#### Example:
 
-success.txt (default)
-✅ Terraform apply completed successfully.
+```bash
+./notifier.sh \
+  "Success" \
+  "success-apply" \
+  "terraform-aws-vpc" \
+  "production" \
+  "devops-team" \
+  "https://discord.com/api/webhooks/..." \
+  "https://hooks.slack.com/services/..." \
+  "https://api.telegram.org/bot..." \
+  "2025-07-19 12:00:00"
+```
+
+### 🧩 Template System
+
+The repository includes several template files in the `templates/` directory. Here's an example of what a template looks like:
+
+```
+✅ Terraform operation completed successfully!
+
 📦 Repo: $REPO
 🌍 Environment: $ENV_NAME
-👤 Actor: $ACTOR
+👤 By: $ACTOR
 🔧 Status: $STATUS
-custom.txt (optional)
-🔔 Custom Notification Triggered!
-Repo: $REPO
-Env: $ENV_NAME
-User: $ACTOR
-Status: $STATUS
+⏰ $TIME
+```
+
+Available templates:
+- `success-plan.txt` - Used for successful Terraform plan operations
+- `success-apply.txt` - Used for successful Terraform apply operations
+- `success-destroy.txt` - Used for successful Terraform destroy operations
+- `custom.txt` - Template for custom notifications
 
 ---
 
-## 📦 Environment Variables
+## 🔑 Required Secrets for GitHub Actions
 
-- `ENV_NAME`: Environment name (e.g., `dev`, `prod`)
-- `REPO`: Repository name
-- `SLACK_WEBHOOK_URL`: Slack webhook URL
-- `DISCORD_WEBHOOK_URL`: Discord webhook URL
-- `TELEGRAM_API_URL`: Telegram API URL
-- `EMAIL_TO`: Email recipient
+When using this with GitHub Actions, you'll need to set up the following secrets in your repository:
+
+- `GH_PAT`: GitHub Personal Access Token with `repo` and `workflow` permissions
+- `DISCORD_WEBHOOK_URL`: Your Discord webhook URL
+- `SLACK_WEBHOOK_URL`: Your Slack webhook URL
+- `TELEGRAM_API_URL`: Your Telegram API URL
 
 ---
 
 
-## 📦 GitHub Actions Usage
+## 🔄 GitHub Actions Integration
+
+This repository includes a GitHub Actions workflow file at `.github/workflows/on-dispatch.yml` that handles incoming notification requests. The workflow:
+
+1. Is triggered by `repository_dispatch` events of type `send-notification`
+2. Checks out the repository code
+3. Runs the notifier script with parameters from the event payload
+
+Key parameters passed from the event payload include:
+- Status of the operation
+- Message type (which template to use)
+- Repository name
+- Environment name
+- Actor name
+- Webhook URLs
+- Timestamp
+```
+
+---
+
+## 📤 Triggering Notifications
+
+### Using GitHub CLI
+
+```bash
+gh repo dispatch edensitko/terraform-apply-notifier \
+  --event-type send-notification \
+  --field status="Success" \
+  --field message="success-apply" \
+  --field repo="your-repo" \
+  --field env_name="production" \
+  --field actor="your-username" \
+  --field discord_webhook_url="https://discord.com/api/webhooks/..." \
+  --field slack_webhook_url="https://hooks.slack.com/services/..." \
+  --field telegram_api_url="https://api.telegram.org/bot..." \
+  --field time="$(date '+%Y-%m-%d %H:%M:%S')"
+```
+
+### From Another GitHub Actions Workflow
 
 ```yaml
-name: Terraform Apply Notification
+- name: Get current time
+  id: current-time
+  run: echo "time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
-on:
-  repository_dispatch:
-    types: [send-notification]
-
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Run Notifier Script
-        run: |
-          chmod +x ./notifier.sh
-          ./notifier.sh \
-            "${{ github.event.client_payload.status }}" \
-            "${{ github.event.client_payload.message }}" \
-            "${{ github.event.client_payload.repo }}" \
-            "${{ github.event.client_payload.env_name }}" \
-            "${{ github.event.client_payload.actor }}" \
-            "${{ github.event.client_payload.discord_webhook_url }}" \
-            "${{ github.event.client_payload.slack_webhook_url }}" \
-            "${{ github.event.client_payload.telegram_api_url }}" \
-            "${{ github.event.client_payload.email_to }}"
+- name: 🔁 Trigger Notification
+  uses: peter-evans/repository-dispatch@v3
+  with:
+    token: ${{ secrets.GH_PAT }}
+    repository: edensitko/terraform-apply-notifier
+    event-type: send-notification
+    client-payload: |
+      {
+        "status": "success",
+        "message": "success-plan",
+        "repo": "${{ github.repository }}",
+        "env_name": "${{ env.ENV_NAME }}",
+        "actor": "${{ github.actor }}",
+        "discord_webhook_url": "${{ secrets.DISCORD_WEBHOOK_URL }}",
+        "slack_webhook_url": "${{ secrets.SLACK_WEBHOOK_URL }}",
+        "telegram_api_url": "${{ secrets.TELEGRAM_API_URL }}",
+        "time": "${{ steps.current-time.outputs.time }}"
+      }
+```
 ```
 
 ---
 
-## 📦 Example Dispatch
+## 📋 Message Types
+
+The `message_type` parameter determines which template file to use:
+
+- `success-plan` → uses `templates/success-plan.txt`
+- `success-apply` → uses `templates/success-apply.txt`
+- `success-destroy` → uses `templates/success-destroy.txt`
+- `custom` → uses `templates/custom.txt`
+
+## 🛡️ Setting Up GitHub Personal Access Token (GH_PAT)
+
+1. Go to: GitHub → Settings → Developer Settings → Personal Access Tokens → Tokens (Classic)
+2. Click: Generate new token
+3. Name it something descriptive like "Terraform Notification Token"
+4. Select these scopes:
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+5. Click "Generate token" and copy it immediately
+6. In the repository that will trigger notifications:
+   - Go to Settings > Secrets and variables > Actions
+   - Click "New repository secret"
+   - Name: `GH_PAT`
+   - Value: Paste your token
+   - Click "Add secret"
+
+## 🧪 Customizing Templates
+
+### Modifying Existing Templates
+
+You can customize any of the template files in the `templates/` directory to match your team's notification preferences. The following variables are available for substitution:
+
+- `$STATUS` or `${STATUS}` - Status of the operation
+- `$REPO` or `${REPO}` - Repository name
+- `$ENV_NAME` or `${ENV_NAME}` - Environment name
+- `$ACTOR` or `${ACTOR}` - User who triggered the action
+- `$TIME` - Timestamp of the operation
+
+### Creating Custom Template Files
+
+To create and use a new custom template:
+
+1. Create a new text file in the `templates/` directory (e.g., `templates/my-custom-template.txt`)
+2. Add your notification content using available variables:
+   ```
+   🚨 Custom Alert: $STATUS
+   📦 Project: $REPO
+   🌍 Environment: $ENV_NAME
+   👤 By: $ACTOR
+   ⏰ $TIME
+   ```
+
+3. When triggering a notification, set the `message` parameter to your template name without the `.txt` extension:
+   ```bash
+   # Using custom template
+   ./notifier.sh "Success" "my-custom-template" ...
+   ```
+   
+   Or in GitHub Actions:
+   ```yaml
+   client-payload: |
+     {
+       "message": "my-custom-template",
+       ...
+     }
+   ```
+
+The script will automatically look for `templates/my-custom-template.txt` based on the message parameter.
+
+## 🔌 Integration with Other CI/CD Tools
+
+You can use this notification system with any CI/CD tool that can make HTTP requests:
+
+### Other CI/CD Tools
+
+You can integrate with other CI/CD tools by making HTTP requests to trigger the GitHub repository dispatch event. For example:
 
 ```bash
-gh repo dispatch create \
-  --event-type send-notification \
-  --json '{"status": "success", "message": "success", "repo": "your-repo", "env_name": "dev", "actor": "your-actor", "discord_webhook_url": "your-discord-webhook-url", "slack_webhook_url": "your-slack-webhook-url", "telegram_api_url": "your-telegram-api-url", "email_to": "your-email-to"}'
+# Generic example for any CI system
+curl -X POST https://api.github.com/repos/edensitko/terraform-apply-notifier/dispatches \
+  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: token $GH_PAT" \
+  -d '{"event_type":"send-notification","client_payload":{"status":"success","message":"success-apply","repo":"my-repo","env_name":"production","actor":"ci-user","discord_webhook_url":"...","slack_webhook_url":"...","telegram_api_url":"...","time":"'$(date '+%Y-%m-%d %H:%M:%S')'"}}'  
 ```
+
+This works with GitLab CI, Jenkins, CircleCI, or any system that can execute shell commands.
 
 ---
 
-🧠 message can be:
-	•	"success" → use templates/success.txt
-	•	"custom" → use templates/custom.txt
-	•	or a raw message like "Terraform failed ⚠️"
-
-⸻
-
-🛡️ How to Create and Use GH_PAT (Personal Access Token)
-	1.	Go to: GitHub → Settings → Developer Settings → Tokens (Classic)
-	2.	Click: Generate new token
-	3.	Select scopes:
-	•	repo
-	•	workflow
-	4.	Copy the token and save it in the repo that triggers the notification:
-	•	Go to Settings > Secrets > Actions
-	•	Add a secret called GH_PAT
-
-⸻
-
-🧪 Forking and Using as Your Own
-
-If you don’t want to use the original terraform-apply-notifier, fork it:
-	1.	Click Fork on this repo.
-	2.	In your main repo, update the workflow:
-repository: your-username/your-forked-repo
-	3.	Push your own templates or modify the script.
-	4.	Add your own GH_PAT with access to your fork.
-
----
-
-🧩 Advanced: Use with Any CI/CD Tool
-
-You can trigger notifier.sh manually from any CI tool (GitLab, Jenkins, etc.).
-
-Just provide the inputs in correct order:
-
-```bash
-bash notifier.sh "success" "custom" "my-repo" "prod" "john" "..." "..." "..." "..."
-```
-👤 Author
+## 👤 Author
 
 Created by Eden Sitkovetsky
+
 Feel free to contribute or open issues 🙌
 
 

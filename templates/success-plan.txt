@@ -4,3 +4,4 @@
 🌍 Environment: ${ENV_NAME}
 👤 By: ${ACTOR}
 🔧 Status: ${STATUS}
+⏰ $TIME
